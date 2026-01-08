@@ -15,7 +15,9 @@ import re
 from datetime import datetime
 from typing import Dict, List, Optional
 
+from google.genai import types
 from magi.models import (
+    Attachment,
     ConsensusResult,
     DebateOutput,
     DebateRound,
@@ -69,7 +71,7 @@ class MagiOrchestrator:
     async def execute(
         self,
         prompt: str,
-        attachments: Optional[list] = None,
+        attachments: Optional[list[Attachment]] = None,
     ) -> ConsensusResult:
         """ConsensusEngine 互換の実行メソッド
 
@@ -78,29 +80,29 @@ class MagiOrchestrator:
 
         Args:
             prompt: ユーザーからの質問/議題
-            attachments: 添付ファイルリスト（現在は未サポート、将来実装予定）
+            attachments: 添付ファイルリスト
 
         Returns:
             ConsensusResult: 合議プロセスの結果
-
-        Note:
-            attachments パラメータは互換性のために受け入れるが、
-            現時点では Gemini Native 実装では無視される。
         """
-        # TODO: attachments サポートを将来実装
-        return await self.consult(prompt)
+        return await self.consult(prompt, attachments=attachments)
 
-    async def consult(self, query: str) -> ConsensusResult:
+    async def consult(
+        self,
+        query: str,
+        attachments: Optional[list[Attachment]] = None,
+    ) -> ConsensusResult:
         """3賢者への問い合わせを実行
 
         Args:
             query: ユーザーからの質問/議題
+            attachments: 添付ファイルリスト
 
         Returns:
             ConsensusResult: 合議プロセスの結果
         """
         # Phase 1: Thinking（並列実行）
-        thinking_results = await self._run_thinking_phase(query)
+        thinking_results = await self._run_thinking_phase(query, attachments)
 
         # Phase 2: Debate（並列実行）
         debate_results = await self._run_debate_phase(query, thinking_results)
@@ -130,6 +132,7 @@ class MagiOrchestrator:
     async def _run_thinking_phase(
         self,
         query: str,
+        attachments: Optional[list[Attachment]] = None,
     ) -> Dict[PersonaType, ThinkingOutput]:
         """Thinking Phase: 3エージェント並列実行
 
@@ -137,6 +140,7 @@ class MagiOrchestrator:
 
         Args:
             query: ユーザーからの質問
+            attachments: 添付ファイルリスト
 
         Returns:
             ペルソナタイプごとの思考結果
@@ -153,10 +157,20 @@ class MagiOrchestrator:
 
 明確で構造化された分析を提供してください。"""
 
+        # コンテンツを構築（テキスト + 添付ファイル）
+        contents: list[str | types.Part] = [thinking_prompt]
+        if attachments:
+            for attachment in attachments:
+                part = types.Part.from_bytes(
+                    data=attachment.data,
+                    mime_type=attachment.mime_type,
+                )
+                contents.append(part)
+
         requests = [
             {
                 "model": agent.model,
-                "contents": thinking_prompt,
+                "contents": contents,
                 "config": {
                     "system_instruction": agent.system_instruction,
                     "temperature": agent.temperature,

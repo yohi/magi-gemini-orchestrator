@@ -47,7 +47,7 @@ class GeminiNativeClient:
     async def generate_content(
         self,
         model: str,
-        contents: str,
+        contents: str | list[types.Part] | list[str],
         system_instruction: str,
         temperature: float = 0.7,
         max_output_tokens: int = 4096,
@@ -57,7 +57,7 @@ class GeminiNativeClient:
 
         Args:
             model: モデル名（例: "gemini-1.5-flash"）
-            contents: ユーザープロンプト
+            contents: ユーザープロンプト（テキストまたはマルチモーダルコンテンツ）
             system_instruction: システム命令
             temperature: 温度パラメータ（0.0〜1.0）
             max_output_tokens: 最大出力トークン数
