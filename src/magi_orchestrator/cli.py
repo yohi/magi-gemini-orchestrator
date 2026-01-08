@@ -77,6 +77,7 @@ async def run_magi(query: str, verbose: bool = False) -> None:
 
         print("\n" + "=" * 60)
         print(f"Exit Code: {result.exit_code}")
+        sys.exit(result.exit_code)
 
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr)
