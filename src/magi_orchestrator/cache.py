@@ -8,9 +8,12 @@
 from __future__ import annotations
 
 from typing import Any, Dict, Optional
+import logging
 
 from google import genai
 from google.genai import types
+
+logger = logging.getLogger(__name__)
 
 
 class CacheManager:
@@ -104,9 +107,11 @@ class CacheManager:
             try:
                 self._client.caches.delete(name=cache_name)
                 return True
-            except Exception:
-                # キャッシュが既に期限切れの場合などはエラーを無視
-                return True
+            except Exception as e:
+                logger.error(
+                    f"Failed to delete cache for {persona_name} ({cache_name}): {e}"
+                )
+                return False
         return False
 
     def warmup_all_personas(
