@@ -42,6 +42,7 @@ class GeminiNativeClient:
             api_key=api_key,
             http_options=types.HttpOptions(timeout=timeout * 1000),
         )
+        self._aio_client = self._client.aio
 
     async def generate_content(
         self,
@@ -72,13 +73,12 @@ class GeminiNativeClient:
             cached_content=cached_content,
         )
 
-        async with self._client.aio as aclient:
-            response = await aclient.models.generate_content(
-                model=model,
-                contents=contents,
-                config=config,
-            )
-            return response.text or ""
+        response = await self._aio_client.models.generate_content(
+            model=model,
+            contents=contents,
+            config=config,
+        )
+        return response.text or ""
 
     async def generate_concurrent(
         self,
@@ -103,31 +103,31 @@ class GeminiNativeClient:
             ... ]
             >>> results = await client.generate_concurrent(requests)
         """
-        async with self._client.aio as aclient:
-            tasks = [
-                aclient.models.generate_content(
-                    model=req["model"],
-                    contents=req["contents"],
-                    config=types.GenerateContentConfig(**req.get("config", {})),
-                )
-                for req in requests
-            ]
-            results = await asyncio.gather(*tasks, return_exceptions=True)
+        tasks = [
+            self._aio_client.models.generate_content(
+                model=req["model"],
+                contents=req["contents"],
+                config=types.GenerateContentConfig(**req.get("config", {})),
+            )
+            for req in requests
+        ]
+        results = await asyncio.gather(*tasks, return_exceptions=True)
 
-            # 例外をエラーメッセージに変換
-            texts: list[str] = []
-            for result in results:
-                if isinstance(result, Exception):
-                    texts.append(f"[ERROR] {type(result).__name__}: {result}")
-                else:
-                    texts.append(result.text or "")
-            return texts
+        # 例外をエラーメッセージに変換
+        texts: list[str] = []
+        for result in results:
+            if isinstance(result, Exception):
+                texts.append(f"[ERROR] {type(result).__name__}: {result}")
+            else:
+                texts.append(result.text or "")
+        return texts
 
     async def close(self) -> None:
         """クライアントリソースをクリーンアップ"""
-        # google-genai SDK は明示的なクローズが不要だが、
-        # 将来の拡張のためにインターフェースを用意
-        pass
+        # google-genai SDK の AsyncClient をクローズ
+        # (SDKの実装に依存するが、リソースリークを防ぐために呼び出す)
+        if hasattr(self._aio_client, "close"):
+            await self._aio_client.close()
 
     async def __aenter__(self) -> "GeminiNativeClient":
         return self
