@@ -19,7 +19,7 @@ async def test_client_connectivity():
     client = GeminiNativeClient(api_key=api_key)
     try:
         response = await client.generate_content(
-            model="gemini-2.0-flash",
+            model="gemini-3-flash-preview",
             contents="Hello, are you online?",
             system_instruction="Reply with 'Yes' only.",
         )

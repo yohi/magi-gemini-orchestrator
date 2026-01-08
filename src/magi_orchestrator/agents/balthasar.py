@@ -12,7 +12,7 @@ from magi_orchestrator.agents.base import AgentConfig
 
 BALTHASAR_CONFIG = AgentConfig(
     persona_type=PersonaType.BALTHASAR,
-    model="gemini-2.0-flash",
+    model="gemini-3-flash-preview",
     temperature=0.5,
     system_instruction=BALTHASAR_BASE_PROMPT,
 )
