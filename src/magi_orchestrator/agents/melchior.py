@@ -12,7 +12,7 @@ from magi_orchestrator.agents.base import AgentConfig
 
 MELCHIOR_CONFIG = AgentConfig(
     persona_type=PersonaType.MELCHIOR,
-    model="gemini-1.5-flash",
+    model="gemini-2.0-flash",
     temperature=0.2,
     system_instruction=MELCHIOR_BASE_PROMPT,
 )

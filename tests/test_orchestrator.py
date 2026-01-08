@@ -128,7 +128,7 @@ class TestAgentConfigs:
         from magi_orchestrator.agents import MELCHIOR_CONFIG
 
         assert MELCHIOR_CONFIG.persona_type == PersonaType.MELCHIOR
-        assert MELCHIOR_CONFIG.model == "gemini-1.5-flash"
+        assert MELCHIOR_CONFIG.model == "gemini-2.0-flash"
         assert MELCHIOR_CONFIG.temperature == 0.2
 
     def test_balthasar_config(self):
@@ -136,7 +136,7 @@ class TestAgentConfigs:
         from magi_orchestrator.agents import BALTHASAR_CONFIG
 
         assert BALTHASAR_CONFIG.persona_type == PersonaType.BALTHASAR
-        assert BALTHASAR_CONFIG.model == "gemini-1.5-flash"
+        assert BALTHASAR_CONFIG.model == "gemini-2.0-flash"
         assert BALTHASAR_CONFIG.temperature == 0.5
 
     def test_casper_config(self):
@@ -144,7 +144,7 @@ class TestAgentConfigs:
         from magi_orchestrator.agents import CASPER_CONFIG
 
         assert CASPER_CONFIG.persona_type == PersonaType.CASPER
-        assert CASPER_CONFIG.model == "gemini-1.5-flash"
+        assert CASPER_CONFIG.model == "gemini-2.0-flash"
         assert CASPER_CONFIG.temperature == 0.8
 
     def test_all_agents_list(self):
@@ -169,7 +169,7 @@ class TestOrchestratorSettings:
             settings = OrchestratorSettings()
 
             assert settings.api_key == "test-key"
-            assert settings.default_model == "gemini-1.5-flash"
+            assert settings.default_model == "gemini-2.0-flash"
             assert settings.voting_threshold == "majority"
             assert settings.timeout == 60
 

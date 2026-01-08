@@ -1,11 +1,14 @@
 import os
 import pytest
 import asyncio
+from dotenv import load_dotenv
 from magi_orchestrator import GeminiNativeClient, MagiOrchestrator, OrchestratorSettings
 from magi.models import ConsensusResult
 
+load_dotenv()
+
 # APIキーがない場合はスキップ
-api_key = os.environ.get("MAGI_GEMINI_API_KEY")
+api_key = os.environ.get("MAGI_GEMINI_API_KEY", "")
 requires_api_key = pytest.mark.skipif(not api_key, reason="MAGI_GEMINI_API_KEY not set")
 
 
@@ -16,7 +19,7 @@ async def test_client_connectivity():
     client = GeminiNativeClient(api_key=api_key)
     try:
         response = await client.generate_content(
-            model="gemini-1.5-flash",
+            model="gemini-2.0-flash",
             contents="Hello, are you online?",
             system_instruction="Reply with 'Yes' only.",
         )
@@ -48,6 +51,9 @@ async def test_orchestrator_consult():
         for persona, thinking in result.thinking_results.items():
             assert thinking.content
             assert len(thinking.content) > 10
+            assert "[ERROR]" not in thinking.content, (
+                f"API Error in thinking: {thinking.content}"
+            )
 
         # 議論内容の確認
         debate_round = result.debate_results[0]

@@ -33,7 +33,7 @@ class OrchestratorSettings(BaseSettings):
     # API 設定
     api_key: str = Field(..., description="Gemini API Key")
     default_model: str = Field(
-        default="gemini-1.5-flash",
+        default="gemini-2.0-flash",
         description="デフォルトモデル",
     )
     timeout: int = Field(default=60, ge=1, description="API タイムアウト（秒）")

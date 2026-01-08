@@ -12,7 +12,7 @@ from magi_orchestrator.agents.base import AgentConfig
 
 CASPER_CONFIG = AgentConfig(
     persona_type=PersonaType.CASPER,
-    model="gemini-1.5-flash",
+    model="gemini-2.0-flash",
     temperature=0.8,
     system_instruction=CASPER_BASE_PROMPT,
 )

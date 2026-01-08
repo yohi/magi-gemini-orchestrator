@@ -133,7 +133,7 @@ settings = OrchestratorSettings()
 # または明示的に設定
 settings = OrchestratorSettings(
     api_key="your-api-key",
-    default_model="gemini-1.5-flash",
+    default_model="gemini-2.0-flash",
     voting_threshold="unanimous",  # 全員一致が必要
 )
 
@@ -160,7 +160,7 @@ cache_manager = CacheManager(cache_client)
 
 # 全ペルソナのキャッシュを事前作成
 cache_manager.warmup_all_personas(
-    model="gemini-1.5-flash",
+    model="gemini-2.0-flash",
     ttl_seconds=3600,
 )
 
@@ -181,7 +181,7 @@ result = await orchestrator.consult("質問内容")
 | 変数名 | 説明 | デフォルト |
 |--------|------|-----------|
 | `MAGI_GEMINI_API_KEY` | Gemini API Key（**必須**） | - |
-| `MAGI_GEMINI_DEFAULT_MODEL` | 使用するモデル | `gemini-1.5-flash` |
+| `MAGI_GEMINI_DEFAULT_MODEL` | 使用するモデル | `gemini-2.0-flash` |
 | `MAGI_GEMINI_VOTING_THRESHOLD` | 投票閾値（majority/unanimous） | `majority` |
 | `MAGI_GEMINI_CACHE_TTL_SECONDS` | キャッシュ有効期限（秒） | `3600` |
 | `MAGI_GEMINI_TIMEOUT` | API タイムアウト（秒） | `60` |
