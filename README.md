@@ -38,7 +38,7 @@ magi-gemini-orchestrator (この新リポジトリ)
 └── agents/                # 3賢者設定
     ├── melchior.py        # 論理・科学 (temp=0.2)
     ├── balthasar.py       # 倫理・保護 (temp=0.5)
-    └── caspar.py          # 欲望・実利 (temp=0.8)
+    └── casper.py          # 欲望・実利 (temp=0.8)
 
 ↓ 依存
 
@@ -228,7 +228,7 @@ magi-gemini-orchestrator/
 │           ├── base.py         # AgentConfig
 │           ├── melchior.py     # MELCHIOR 設定
 │           ├── balthasar.py    # BALTHASAR 設定
-│           └── caspar.py       # CASPER 設定
+│           └── casper.py       # CASPER 設定
 ├── tests/
 │   ├── __init__.py
 │   └── test_orchestrator.py
