@@ -202,8 +202,7 @@ class TestGeminiNativeClient:
             mock_aclient.models.generate_content = AsyncMock(return_value=mock_response)
 
             mock_client_instance = MagicMock()
-            mock_client_instance.aio.__aenter__ = AsyncMock(return_value=mock_aclient)
-            mock_client_instance.aio.__aexit__ = AsyncMock(return_value=None)
+            mock_client_instance.aio = mock_aclient
 
             mock_genai.Client.return_value = mock_client_instance
 

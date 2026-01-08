@@ -104,7 +104,15 @@ async def main():
     for persona_name, thinking in result.thinking_results.items():
         print(f"\n【{persona_name.upper()}の分析】")
         print(thinking.content)
-    
+
+    # 議論結果を表示
+    for round_data in result.debate_results:
+        print(f"\n【Debate Round {round_data.round_number}】")
+        for persona_type, output in round_data.outputs.items():
+            # 最初のレスポンスを表示
+            content = list(output.responses.values())[0] if output.responses else ""
+            print(f"[{persona_type.value.upper()}]: {content[:100]}...")
+
     # 投票結果を表示
     for persona_type, vote in result.voting_results.items():
         print(f"\n【{persona_type.value.upper()}の投票】")

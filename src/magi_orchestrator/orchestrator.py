@@ -17,6 +17,8 @@ from typing import Dict, List, Optional
 
 from magi.models import (
     ConsensusResult,
+    DebateOutput,
+    DebateRound,
     Decision,
     PersonaType,
     ThinkingOutput,
@@ -76,10 +78,15 @@ class MagiOrchestrator:
         # Phase 1: Thinking（並列実行）
         thinking_results = await self._run_thinking_phase(query)
 
-        # Phase 2: Voting（並列実行）
-        voting_results = await self._run_voting_phase(query, thinking_results)
+        # Phase 2: Debate（並列実行）
+        debate_results = await self._run_debate_phase(query, thinking_results)
 
-        # Phase 3: Decision
+        # Phase 3: Voting（並列実行）
+        voting_results = await self._run_voting_phase(
+            query, thinking_results, debate_results
+        )
+
+        # Phase 4: Decision
         tally = self._tally_votes(voting_results)
         decision = tally.get_decision(self.voting_threshold)
         exit_code = self._get_exit_code(decision)
@@ -89,7 +96,7 @@ class MagiOrchestrator:
 
         return ConsensusResult(
             thinking_results={pt.value: to for pt, to in thinking_results.items()},
-            debate_results=[],  # 簡略版では Debate Phase を省略
+            debate_results=debate_results,
             voting_results=voting_results,
             final_decision=decision,
             exit_code=exit_code,
@@ -147,10 +154,118 @@ class MagiOrchestrator:
             for agent, result in zip(self.agents, results)
         }
 
+    async def _run_debate_phase(
+        self,
+        query: str,
+        thinking_results: Dict[PersonaType, ThinkingOutput],
+        rounds: int = 1,
+    ) -> List[DebateRound]:
+        """Debate Phase: 議論を並列実行
+
+        Args:
+            query: 元の質問
+            thinking_results: Thinking Phase の結果
+            rounds: 議論のラウンド数
+
+        Returns:
+            議論ラウンドのリスト
+        """
+        debate_rounds: List[DebateRound] = []
+
+        for round_num in range(1, rounds + 1):
+            context = self._build_debate_context(thinking_results, debate_rounds)
+
+            requests = []
+            for agent in self.agents:
+                prompt = self._create_debate_prompt(query, agent.persona_type, context)
+                requests.append(
+                    {
+                        "model": agent.model,
+                        "contents": prompt,
+                        "config": {
+                            "system_instruction": agent.system_instruction,
+                            "temperature": agent.temperature,
+                            "cached_content": self._get_cache_name(agent),
+                        },
+                    }
+                )
+
+            results = await self.client.generate_concurrent(requests)
+            now = datetime.now()
+
+            round_outputs = {}
+            for agent, result_text in zip(self.agents, results):
+                # 簡易的に、全員へのレスポンスとして同じテキストを割り当てる
+                responses = {}
+                for other_agent in self.agents:
+                    if other_agent.persona_type != agent.persona_type:
+                        responses[other_agent.persona_type] = result_text
+
+                round_outputs[agent.persona_type] = DebateOutput(
+                    persona_type=agent.persona_type,
+                    round_number=round_num,
+                    responses=responses,
+                    timestamp=now,
+                )
+
+            debate_rounds.append(
+                DebateRound(
+                    round_number=round_num,
+                    outputs=round_outputs,
+                    timestamp=now,
+                )
+            )
+
+        return debate_rounds
+
+    def _build_debate_context(
+        self,
+        thinking_results: Dict[PersonaType, ThinkingOutput],
+        debate_rounds: List[DebateRound],
+    ) -> str:
+        """議論用のコンテキストを構築"""
+        parts = []
+
+        # Thinking Phase の結果
+        parts.append("【Thinking Phase Results】")
+        for pt, to in thinking_results.items():
+            parts.append(f"[{pt.value.upper()}]:\n{to.content}\n")
+
+        # 過去の Debate Rounds
+        for round_data in debate_rounds:
+            parts.append(f"【Debate Round {round_data.round_number}】")
+            for pt, output in round_data.outputs.items():
+                # 代表して最初のレスポンスを表示（現在は全て同じため）
+                content = list(output.responses.values())[0] if output.responses else ""
+                parts.append(f"[{pt.value.upper()}]:\n{content}\n")
+
+        return "\n".join(parts)
+
+    def _create_debate_prompt(
+        self, query: str, my_persona: PersonaType, context: str
+    ) -> str:
+        """議論用のプロンプトを作成"""
+        return f"""以下の議題と、他の賢者の意見を踏まえ、議論を行ってください。
+
+【議題】
+{query}
+
+【これまでの議論】
+{context}
+
+【指示】
+あなたの役割（{my_persona.value.upper()}）に基づき、以下の点について発言してください：
+1. 他の賢者の意見に対する賛成・反対とその理由
+2. 自身の当初の考えの修正や補強
+3. 最終的な合意形成に向けた提案
+
+他の賢者の意見を批判的に検討し、より良い結論を導き出してください。"""
+
     async def _run_voting_phase(
         self,
         query: str,
         thinking_results: Dict[PersonaType, ThinkingOutput],
+        debate_results: List[DebateRound],
     ) -> Dict[PersonaType, VoteOutput]:
         """Voting Phase: 投票を並列実行
 
@@ -159,22 +274,20 @@ class MagiOrchestrator:
         Args:
             query: 元の質問
             thinking_results: Thinking Phase の結果
+            debate_results: Debate Phase の結果
 
         Returns:
             ペルソナタイプごとの投票結果
         """
-        # 他エージェントの思考をコンテキストとして構築
-        context_parts = []
-        for pt, to in thinking_results.items():
-            context_parts.append(f"【{pt.value.upper()}の分析】\n{to.content}")
-        context = "\n\n".join(context_parts)
+        # 他エージェントの思考と議論をコンテキストとして構築
+        context = self._build_debate_context(thinking_results, debate_results)
 
         vote_prompt = f"""以下の分析結果を踏まえ、元の議題に対して投票してください。
 
 【元の議題】
 {query}
 
-【各エージェントの分析】
+【各エージェントの分析と議論】
 {context}
 
 【投票形式】
