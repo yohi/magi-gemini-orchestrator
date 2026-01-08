@@ -38,7 +38,10 @@ class GeminiNativeClient:
         """
         self._api_key = api_key
         self._timeout = timeout
-        self._client = genai.Client(api_key=api_key)
+        self._client = genai.Client(
+            api_key=api_key,
+            http_options=types.HttpOptions(timeout=timeout * 1000),
+        )
 
     async def generate_content(
         self,
