@@ -124,8 +124,7 @@ class GeminiNativeClient:
 
     async def close(self) -> None:
         """クライアントリソースをクリーンアップ"""
-        if hasattr(self._aio_client, "aclose"):
-            await self._aio_client.aclose()
+        await self._aio_client.aclose()
 
     async def __aenter__(self) -> "GeminiNativeClient":
         return self
