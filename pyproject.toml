@@ -36,7 +36,7 @@ dev = [
 ]
 
 [project.scripts]
-magi-gemini = "magi_orchestrator:main"
+magi-gemini = "magi_orchestrator.cli:main"
 
 [build-system]
 requires = ["hatchling"]
