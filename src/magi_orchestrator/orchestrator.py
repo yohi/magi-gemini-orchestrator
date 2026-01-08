@@ -66,6 +66,30 @@ class MagiOrchestrator:
         self.voting_threshold = voting_threshold
         self.agents = agents or ALL_AGENTS
 
+    async def execute(
+        self,
+        prompt: str,
+        attachments: Optional[list] = None,
+    ) -> ConsensusResult:
+        """ConsensusEngine 互換の実行メソッド
+
+        magi-gui との互換性のため、magi-core の ConsensusEngine.execute と
+        同じインターフェースを提供する。
+
+        Args:
+            prompt: ユーザーからの質問/議題
+            attachments: 添付ファイルリスト（現在は未サポート、将来実装予定）
+
+        Returns:
+            ConsensusResult: 合議プロセスの結果
+
+        Note:
+            attachments パラメータは互換性のために受け入れるが、
+            現時点では Gemini Native 実装では無視される。
+        """
+        # TODO: attachments サポートを将来実装
+        return await self.consult(prompt)
+
     async def consult(self, query: str) -> ConsensusResult:
         """3賢者への問い合わせを実行
 
