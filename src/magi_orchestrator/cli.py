@@ -1,8 +1,6 @@
 import argparse
 import asyncio
-import os
 import sys
-from typing import Optional
 
 from dotenv import load_dotenv
 
@@ -51,7 +49,7 @@ async def run_magi(query: str, verbose: bool = False) -> None:
         # Thinking Phase
         print("\n--- Phase 1: Thinking ---")
         for persona, thinking in result.thinking_results.items():
-            print(f"\n[{persona.upper()}]")
+            print(f"\n[{persona.value.upper()}]")
             print(thinking.content.strip())
 
         # Debate Phase
