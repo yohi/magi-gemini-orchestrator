@@ -124,10 +124,8 @@ class GeminiNativeClient:
 
     async def close(self) -> None:
         """クライアントリソースをクリーンアップ"""
-        # google-genai SDK の AsyncClient をクローズ
-        # (SDKの実装に依存するが、リソースリークを防ぐために呼び出す)
-        if hasattr(self._aio_client, "close"):
-            await self._aio_client.close()
+        if hasattr(self._aio_client, "aclose"):
+            await self._aio_client.aclose()
 
     async def __aenter__(self) -> "GeminiNativeClient":
         return self
