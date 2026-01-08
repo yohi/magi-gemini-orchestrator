@@ -26,6 +26,7 @@ dependencies = [
     "pydantic-settings>=2.0.0",
     "magi",
     "pytest-asyncio>=1.3.0",
+    "python-dotenv>=1.0.0",
 ]
 
 [project.optional-dependencies]
@@ -36,7 +37,7 @@ dev = [
 ]
 
 [project.scripts]
-magi-gemini = "magi_orchestrator:main"
+magi-gemini = "magi_orchestrator.cli:main"
 
 [build-system]
 requires = ["hatchling"]
