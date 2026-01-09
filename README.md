@@ -69,6 +69,7 @@ cd magi-gemini-orchestrator
 # 環境変数を設定
 cp .env.example .env
 # .env を編集して MAGI_GEMINI_API_KEY を設定
+# （詳細なセットアップ手順は [GOOGLE_AI_STUDIO_SETUP.md](./GOOGLE_AI_STUDIO_SETUP.md) を参照）
 
 # 依存関係をインストール
 uv sync
