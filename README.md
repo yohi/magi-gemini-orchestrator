@@ -57,7 +57,6 @@ magi-core
 
 - Python 3.11 以上
 - [uv](https://github.com/astral-sh/uv) パッケージマネージャー（推奨）
-- `magi-core` が `../magi-core` に存在すること
 
 ### セットアップ
 
